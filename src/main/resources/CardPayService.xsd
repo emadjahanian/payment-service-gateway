@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://com.fintech/serviceGateway/cardpay/v1"
+           targetNamespace="http://com.fintech/serviceGateway/cardpay/v1"
+           elementFormDefault="qualified">
+
+    <xs:simpleType name="CardNumber">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{16}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ExpiryDate">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="(0[1-9]|1[0-2])/[0-9]{2}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="CVV">
+        <xs:restriction base="xs:string">
+            <xs:length value="3"/>
+            <xs:pattern value="[0-9]{3}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="TransactionId">
+        <xs:restriction base="xs:string">
+            <xs:length value="36"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Currency">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="IRR"/>
+            <xs:enumeration value="USD"/>
+            <xs:enumeration value="EUR"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="TransactionStatus">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="PENDING"/>
+            <xs:enumeration value="SUCCESS"/>
+            <xs:enumeration value="FAILED"/>
+            <xs:enumeration value="CANCELED"/>
+            <xs:enumeration value="REFUNDED"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="RegisterCardRequest">
+        <xs:sequence>
+            <xs:element name="ownerId"        type="xs:long"/>
+            <xs:element name="cardNumber"     type="tns:CardNumber"/>
+            <xs:element name="expiryDate"     type="tns:ExpiryDate"/>
+            <xs:element name="cvv"            type="tns:CVV"/>
+            <xs:element name="cardHolderName" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="RegisterCardResponse">
+        <xs:sequence>
+            <xs:element name="cardId"            type="xs:long"/>
+            <xs:element name="maskedCardNumber"  type="xs:string"/>
+            <xs:element name="status"            type="xs:string"/>
+            <xs:element name="message"           type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="GetUserCardsRequest">
+        <xs:sequence>
+            <xs:element name="ownerId" type="xs:long"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="CardInfo">
+        <xs:sequence>
+            <xs:element name="cardId"           type="xs:long"/>
+            <xs:element name="maskedCardNumber" type="xs:string"/>
+            <xs:element name="cardHolderName"   type="xs:string" minOccurs="0"/>
+            <xs:element name="expiryDate"       type="xs:string"/>
+            <xs:element name="active"           type="xs:boolean"/>
+            <xs:element name="createdAt"        type="xs:dateTime"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="GetUserCardsResponse">
+        <xs:sequence>
+            <xs:element name="cards" type="tns:CardInfo" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="CreatePaymentRequest">
+        <xs:sequence>
+            <xs:element name="ownerId"      type="xs:long"/>
+            <xs:element name="cardId"       type="xs:long"    minOccurs="0"/>
+            <xs:element name="amount"       type="xs:long"/>
+            <xs:element name="currency"     type="tns:Currency" default="IRR"/>
+            <xs:element name="description"  type="xs:string"   minOccurs="0"/>
+            <xs:element name="callbackUrl"  type="xs:anyURI"/>
+            <xs:element name="mobile"       type="xs:string"   minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="CreatePaymentResponse">
+        <xs:sequence>
+            <xs:element name="transactionId" type="tns:TransactionId"/>
+            <xs:element name="amount"        type="xs:long"/>
+            <xs:element name="currency"      type="tns:Currency"/>
+            <xs:element name="status"        type="tns:TransactionStatus"/>
+            <xs:element name="paymentUrl"    type="xs:anyURI"   minOccurs="0"/>
+            <xs:element name="token"         type="xs:string"   minOccurs="0"/>
+            <xs:element name="message"       type="xs:string"   minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="VerifyPaymentRequest">
+        <xs:sequence>
+            <xs:element name="transactionId" type="tns:TransactionId"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="VerifyPaymentResponse">
+        <xs:sequence>
+            <xs:element name="transactionId" type="tns:TransactionId"/>
+            <xs:element name="status"        type="tns:TransactionStatus"/>
+            <xs:element name="amount"        type="xs:long"/>
+            <xs:element name="currency"      type="tns:Currency"/>
+            <xs:element name="referenceId"         type="xs:string"   minOccurs="0"/>
+            <xs:element name="cardMasked"    type="xs:string"   minOccurs="0"/>
+            <xs:element name="verifiedAt"    type="xs:dateTime"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ServiceFault">
+        <xs:sequence>
+            <xs:element name="code"    type="xs:string"/>
+            <xs:element name="message" type="xs:string"/>
+            <xs:element name="detail"  type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="RegisterCardRequest"      type="tns:RegisterCardRequest"/>
+    <xs:element name="RegisterCardResponse"     type="tns:RegisterCardResponse"/>
+
+    <xs:element name="GetUserCardsRequest"      type="tns:GetUserCardsRequest"/>
+    <xs:element name="GetUserCardsResponse"     type="tns:GetUserCardsResponse"/>
+
+    <xs:element name="CreatePaymentRequest"     type="tns:CreatePaymentRequest"/>
+    <xs:element name="CreatePaymentResponse"    type="tns:CreatePaymentResponse"/>
+
+    <xs:element name="VerifyPaymentRequest"     type="tns:VerifyPaymentRequest"/>
+    <xs:element name="VerifyPaymentResponse"    type="tns:VerifyPaymentResponse"/>
+
+    <xs:element name="ServiceFault"             type="tns:ServiceFault"/>
+
+</xs:schema>
